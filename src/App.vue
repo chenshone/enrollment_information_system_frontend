@@ -1,30 +1,57 @@
 <template>
-  <div id="nav">
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </div>
-  <router-view />
+  <a-layout>
+    <a-layout-header><Header /></a-layout-header>
+    <a-layout-content class="content"><router-view /></a-layout-content>
+    <a-layout-footer><Footer /></a-layout-footer>
+  </a-layout>
 </template>
+<script lang="ts">
+import { defineComponent, onMounted } from "vue";
+import { Layout, message } from "ant-design-vue";
+import Header from "@/components/Header.vue";
+import Footer from "@/components/Footer.vue";
+import { getLocal } from "./utils/storage";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
+import { loginTokenApi } from "./api/request";
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+export default defineComponent({
+  components: {
+    Header,
+    Footer,
+    ALayout: Layout,
+  },
+  setup() {
+    const token = getLocal("userToken");
+    const router = useRouter();
+    const store = useStore();
+    const route = useRoute();
 
-#nav {
-  padding: 30px;
-}
+    store.commit("setUserToken", token);
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
+    onMounted(() => {
+      if (!token) {
+        router.push("/login");
 
-#nav a.router-link-exact-active {
-  color: #42b983;
+        // console.log(router.currentRoute);
+      } else {
+        loginTokenApi({ myToken: token })
+          .then((res) => {
+            store.commit("setUserInfo", res.data);
+            console.log(111, res);
+          })
+          .catch(() => {
+            message.error("用户登录过期");
+            router.push("/login");
+          });
+      }
+    });
+  },
+});
+</script>
+
+<style lang="less" scoped>
+.content {
+  min-height: 745px;
 }
 </style>

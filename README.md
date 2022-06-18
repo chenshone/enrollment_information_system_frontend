@@ -1,4 +1,4 @@
-# enrollment_information_system_frontend
+# 高校招生信息平台(大学毕设) 前端
 
 ## Project setup
 ```
